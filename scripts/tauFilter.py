@@ -3,15 +3,15 @@ import numpy as np
 import glob
 import sys, argparse
 
-ROOT.EnableImplicitMT(8)
+ROOT.EnableImplicitMT(16)
 
 RDataFrame = ROOT.RDataFrame
-inputFiles = ['/media/DATA2/NANO_DATA/2023/JetMET0_Run2023C-22Sep2023_v4-v1_NANOAOD/000ddcf4-658b-42c8-a742-bbcf7060f1ab.root']
+inputFiles = ['/media/DATA/NANO_DATA/2023/JetMET0_Run2023C-PromptNanoAODv11p9_v1-v1_NANOAOD/a5a36540-67cd-4853-920a-e55c3c1bcb47.root']
 outputFile = 'output'
 
     
 def getOptions():
-    parser = argparse.ArgumentParser(description="Run a simple dijet analysis on nanoAOD with RDataFrames")
+    parser = argparse.ArgumentParser(description="Run a tau filter on Run 3 data")
     parser.add_argument("-f_in", "--inputFiles", type=str, default=inputFiles, nargs='+', help="Input files separated by a comma")
     parser.add_argument("-o", "--outputFile", type=str, default=outputFile, help="Output file name")
     return parser.parse_args()
@@ -34,36 +34,29 @@ if __name__ == "__main__":
     # Get command line arguments
     args = getOptions()
 
-    filepath = args.filepath
-    inputFiles = args.inputFiles# .split(",")
+    inputFiles = args.inputFiles
     outputFile = args.outputFile
-    
-    # Columns to analyze and use
-    # cols = ["Jet_pt"]
-    
+
+    print(f"Loading {len(inputFiles)} files")
     chain = ROOT.TChain("Events")
     for file in inputFiles:
         chain.Add(file)
         
-    # chain.Add(inputFiles[0])    
+    selected_columns = ["L1Tau_hwIso", "L1Tau_bx", "L1Tau_eta", "L1Tau_phi", "L1Tau_pt", "HLT_PFJet500"]  
     # Create RDataFrame
-    rdf = RDataFrame(chain)
-    # df = makeRDF(inputFiles)
-    print("Filtering events")
+    rdf = RDataFrame(chain, selected_columns)
+    print("RDF created")
+    
     # Filter jets
-    rdf = (rdf.Filter("Jet_pt.size() > 2", "Filter events with at least 3 jets")
-            .Filter("(Jet_pt[0] + Jet_pt[1]) / 2.0 > Jet_pt[2]", "Choose dijet events")
+    print("Filtering events")
+    rdf = (rdf.Filter("HLT_PFJet500", "Filter events with HLT_PFJet500")
         )
 
     # Print the number of events
     print("Number of events:")
     print(rdf.Count().GetValue())
     
-    # Plot jet_pt
-    h_jet_pt = rdf.Histo1D(("Jet_pt", "Jet_pt", 100, 0, 1000), "Jet_pt")
+    # Write the dataframe to a ROOT file
+    print(f"Writing dataframe to file {outputFile}.root")
+    rdf.Snapshot("Events", outputFile+".root", selected_columns)
     
-    # Write the histogram to a file
-    print("Writing histogram to file")
-    f = ROOT.TFile.Open(outputFile+".root", "RECREATE")
-    h_jet_pt.Write()
-    f.Close()
