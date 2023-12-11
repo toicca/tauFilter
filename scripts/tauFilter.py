@@ -3,7 +3,7 @@ import numpy as np
 import glob
 import sys, argparse
 
-ROOT.EnableImplicitMT(16)
+ROOT.EnableImplicitMT(12)
 
 RDataFrame = ROOT.RDataFrame
 inputFiles = ['/media/DATA/NANO_DATA/2023/JetMET0_Run2023C-PromptNanoAODv11p9_v1-v1_NANOAOD/a5a36540-67cd-4853-920a-e55c3c1bcb47.root']
@@ -41,8 +41,20 @@ if __name__ == "__main__":
     chain = ROOT.TChain("Events")
     for file in inputFiles:
         chain.Add(file)
-        
-    selected_columns = ["L1Tau_hwIso", "L1Tau_bx", "L1Tau_eta", "L1Tau_phi", "L1Tau_pt", "HLT_PFJet500"]  
+    # L1 columns
+    L1_cols = ["L1Tau_hwIso", "L1Tau_bx", "L1Tau_eta", "L1Tau_phi", "L1Tau_pt"]
+    
+    # Jet columns
+    Jet_cols = ["Jet_eta", "Jet_phi", "Jet_pt", "Jet_mass", "Jet_jetId", "Jet_nConstituents", "Jet_rawFactor"]
+    
+    # HLT columns
+    HLT_cols = ["HLT_PFJet500"]
+    
+    # Event information
+    Event_cols = ["run", "luminosityBlock", "event", "bunchCrossing"]
+    
+    selected_columns = L1_cols + Jet_cols + HLT_cols + Event_cols
+    
     # Create RDataFrame
     rdf = RDataFrame(chain, selected_columns)
     print("RDF created")
