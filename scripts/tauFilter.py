@@ -9,14 +9,12 @@ RDataFrame = ROOT.RDataFrame
 inputFiles = ['/media/DATA/NANO_DATA/2023/JetMET0_Run2023C-PromptNanoAODv11p9_v1-v1_NANOAOD/a5a36540-67cd-4853-920a-e55c3c1bcb47.root']
 outputFile = 'output'
 
-    
 def getOptions():
     parser = argparse.ArgumentParser(description="Run a tau filter on Run 3 data")
     parser.add_argument("-f_in", "--inputFiles", type=str, default=inputFiles, nargs='+', help="Input files separated by a comma")
     parser.add_argument("-o", "--outputFile", type=str, default=outputFile, help="Output file name")
     return parser.parse_args()
-    
-    
+       
 def strTakeN(colName, n):
     result = ""
     
@@ -29,7 +27,6 @@ def strTakeN(colName, n):
     
     return result
     
-
 if __name__ == "__main__":
     # Get command line arguments
     args = getOptions()
@@ -41,6 +38,7 @@ if __name__ == "__main__":
     chain = ROOT.TChain("Events")
     for file in inputFiles:
         chain.Add(file)
+        
     # L1 columns
     L1_cols = ["L1Tau_hwIso", "L1Tau_bx", "L1Tau_eta", "L1Tau_phi", "L1Tau_pt"]
     
