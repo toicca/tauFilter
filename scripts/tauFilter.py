@@ -10,7 +10,14 @@ ROOT.gSystem.Load("../JetMETObjects/src/JetCorrectorParameters_cc.so")
 ROOT.gSystem.Load("../JetMETObjects/src/JetResolutionObject_cc.so")
 ROOT.gSystem.Load("../JetMETObjects/src/SimpleJetCorrector_cc.so")
 ROOT.gSystem.Load("../JetMETObjects/src/SimpleJetCorrectionUncertainty_cc.so")
-
+"""
+ROOT.gSystem.Load("../JetMETObjects/src/FactorizedJetCorrector.cc")
+ROOT.gSystem.Load("../JetMETObjects/src/JetCorrectionUncertainty.cc")
+ROOT.gSystem.Load("../JetMETObjects/src/JetCorrectorParameters.cc")
+ROOT.gSystem.Load("../JetMETObjects/src/JetResolutionObject.cc")
+ROOT.gSystem.Load("../JetMETObjects/src/SimpleJetCorrector.cc")
+ROOT.gSystem.Load("../JetMETObjects/src/SimpleJetCorrectionUncertainty.cc")
+"""
 # Headers for declaring the JEC and JER objects
 ROOT.gInterpreter.Declare("""
 #include "../JetMETObjects/interface/FactorizedJetCorrector.h"
@@ -73,8 +80,6 @@ if __name__ == "__main__":
                         
                         std::vector<JetCorrectorParameters> correctionParameters;
                         
-                        FactorizedJetCorrector *JetCorrector;
-
                         void initJEC() {
                             const char* L2RelativeFile = Form("../JetMETObjects/data/Summer22Run3_V1_MC_L2Relative_AK4PUPPI.txt");
                             const char* L2L3ResidualFile = Form("../JetMETObjects/data/""" + CorrectionSet + """_L2L3Residual_AK4PFPUPPI.txt");
@@ -84,12 +89,13 @@ if __name__ == "__main__":
                             
                             correctionParameters.push_back(*L2Relative);
                             correctionParameters.push_back(*L2L3Residual);
-                            
-                            JetCorrector = new FactorizedJetCorrector(correctionParameters);
                         }
                         
-                        ROOT::RVec<Float_t> CorrectedJetPt(unsigned int slot, ROOT::RVec<Float_t> JetPt, ROOT::RVec<Float_t> JetEta, ROOT::RVec<Float_t> JetArea, Float_t Rho) {
+                        ROOT::RVec<Float_t> CorrectedJetPt(unsigned int slot, ULong64_t entry, ROOT::RVec<Float_t> JetPt, ROOT::RVec<Float_t> JetEta, ROOT::RVec<Float_t> JetArea, Float_t Rho) {
+                            std::unique_ptr<FactorizedJetCorrector> JetCorrector;
                             ROOT::RVec<Float_t> CorrectedJetPt(JetPt.size());
+
+                            JetCorrector = std::make_unique<FactorizedJetCorrector>(correctionParameters);
 
                             for (size_t i = 0; i < JetPt.size(); i++) {
                                 JetCorrector->setJetPt(JetPt[i]);
@@ -140,16 +146,14 @@ if __name__ == "__main__":
     # Recalculate the jet pt
     rdf = (rdf.Define("OldJet_pt", "Jet_pt")
         .Define("Jet_rawPt", "Jet_pt*(1.0 - Jet_rawFactor)")
-        .Define("C", "CorrectedJetPt(rdfslot_, Jet_rawPt, Jet_eta, Jet_area, Rho_fixedGridRhoFastjetAll)")
+        .Define("C", "CorrectedJetPt(rdfslot_, rdfentry_, Jet_rawPt, Jet_eta, Jet_area, Rho_fixedGridRhoFastjetAll)")
         .Redefine("Jet_pt", "C * Jet_rawPt")    
         )
 
-    # rdf.Define("C", "CorrectedJetPt", ["Jet_rawPt", "Jet_eta", "Jet_area", "Rho_fixedGridRhoFastjetAll"])
-
     # Print the number of events
     # Triggers the evaluation of the previous filters
-    # print("Number of events:")
-    # print(rdf.Count().GetValue())
+    print("Number of events:")
+    print(rdf.Count().GetValue())
     
     # Write the dataframe to a ROOT file
     print(f"Writing dataframe to file {outputFile}.root")

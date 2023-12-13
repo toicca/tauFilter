@@ -2,7 +2,7 @@ import ROOT
 
 
 # RDF
-rdf = ROOT.RDataFrame("Events", "tautest.root")
+rdf = ROOT.RDataFrame("Events", "tauers.root")
 
 # Plot the column C
 canv = ROOT.TCanvas("canv", "canv", 800, 600)
