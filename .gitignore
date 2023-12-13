@@ -1,2 +1,6 @@
 *.root
 /output
+.vscode
+*.png
+*.pdf
+*.html
