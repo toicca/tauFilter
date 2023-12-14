@@ -7,7 +7,7 @@ if [ -z "$1" ]; then
 fi
 
 # Iterate over subdirectories, ignoring PromptReco-v4
-find "$1" -mindepth 2 -type d -not -path '*PromptReco-v4*' | while read -r dir; do
+find "$1" -mindepth 1 -type d -not -path '*PromptReco-v4*' | while read -r dir; do
   # Get all .root files in subdirectory
   files=$(find "$dir" -type f -name "*.root")
   

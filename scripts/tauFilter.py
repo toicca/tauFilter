@@ -147,7 +147,8 @@ if __name__ == "__main__":
     rdf = (rdf.Define("OldJet_pt", "Jet_pt")
         .Define("Jet_rawPt", "Jet_pt*(1.0 - Jet_rawFactor)")
         .Define("C", "CorrectedJetPt(rdfslot_, rdfentry_, Jet_rawPt, Jet_eta, Jet_area, Rho_fixedGridRhoFastjetAll)")
-        .Redefine("Jet_pt", "C * Jet_rawPt")    
+        .Redefine("Jet_pt", "C * Jet_rawPt")
+        .Redefine("Jet_rawFactor", "1-1/C")
         )
 
     # Print the number of events
@@ -155,7 +156,9 @@ if __name__ == "__main__":
     print("Number of events:")
     print(rdf.Count().GetValue())
     
+    writed_columns = [col for col in selected_columns if col not in ["Jet_rawFactor", "Jet_area", "Rho_fixedGridRhoFastJetArea", ]] + ["C"]
+    
     # Write the dataframe to a ROOT file
     print(f"Writing dataframe to file {outputFile}.root")
-    rdf.Snapshot("Events", outputFile+".root", selected_columns + ["C", "OldJet_pt"])# , selected_columns , selected_columns + ["C"]
+    rdf.Snapshot("Events", outputFile+".root", selected_columns + ["C"])# , selected_columns , selected_columns + ["C"]
     
